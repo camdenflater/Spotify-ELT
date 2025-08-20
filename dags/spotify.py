@@ -174,9 +174,9 @@ profile_config = ProfileConfig(
     )
 )
 
-project_config = ProjectConfig("/Spotify-ELT/dbt/spotifyredshift")
+project_config = ProjectConfig("/usr/local/airflow/dbt/spotifyredshift")
 
-execution_config = ExecutionConfig(dbt_executable_path="/usr/local/bin/dbt")
+execution_config = ExecutionConfig(dbt_executable_path="/usr/local/airflow/dbt_venv/bin/dbt")
 
 
 with DAG(dag_id="spotifyELT"
@@ -190,17 +190,17 @@ with DAG(dag_id="spotifyELT"
     )
     uploadS3 = PythonOperator(
         task_id="uploadToS3",
-        python_callable=s3Main,
+        python_callable=s3Main
     )
     uploadRedshift = PythonOperator(
         task_id="uploadToRedshift",
-        python_callable=s3ToRedshiftMain,
+        python_callable=s3ToRedshiftMain
     )
-    with TaskGroup(group_id="dbt_spotify") as dbtGroup:
-        DbtTaskGroup(
-            project_config=project_config,
-            profile_config=profile_config,
-            execution_config=execution_config
+    dbtGroup = DbtTaskGroup(
+        group_id="dbtSpotify",
+        project_config=project_config,
+        profile_config=profile_config,
+        execution_config=execution_config
         )
 
 spotifyAPI >> uploadS3 >> uploadRedshift >> dbtGroup
