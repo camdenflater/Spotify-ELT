@@ -105,9 +105,8 @@ headers = {"Authorization": f"Bearer {get_spotify_token(sc.client_id, sc.client_
 
 def spotifyMain():
     # Artists to query
-    artist_names = ["Morgan Wallen"]
-    # , "Luke Combs", "Riley Green", "Chris Stapleton", 
-    #                 "Treaty Oak Revival", "Jason Aldean", "George Strait", "Parker McCollum"]
+    artist_names = ["Morgan Wallen", "Luke Combs", "Riley Green", "Chris Stapleton", 
+                    "Treaty Oak Revival", "Jason Aldean", "George Strait", "Parker McCollum"]
     country_songs_df = pd.DataFrame()
 
     # Loop through each artist and collect their songs
@@ -134,7 +133,6 @@ def s3Main(**context):
     df = pd.DataFrame(json.loads(country_songs_json))
 
     s3_hook = S3Hook(aws_conn_id="aws_conn_camden")
-    s3_bucket = ac.s3_bucket
     filename = f"data/spotify-api-{datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]}.csv"
 
     csv_buffer = io.StringIO()
@@ -143,7 +141,7 @@ def s3Main(**context):
     s3_hook.load_string(
         string_data=csv_buffer.getvalue(),
         key=filename,
-        bucket_name=s3_bucket,
+        bucket_name=ac.s3_bucket,
         replace=True
     )
 
@@ -167,12 +165,16 @@ args = {
 }
 
 profile_config = ProfileConfig(
-    profile_name="spotifyredshift",  
-    target_name="prod",              
+    profile_name="spotifyredshift",
+    target_name="prod",
     profile_mapping=RedshiftUserPasswordProfileMapping(
-        conn_id="redshift_conn_camden"
-    )
+        conn_id="redshift_conn_camden",
+        profile_args={         
+            "schema": "public"
+        },
+    ),
 )
+
 
 project_config = ProjectConfig("/usr/local/airflow/dbt/spotifyredshift")
 
