@@ -4,9 +4,11 @@ RUN pip install dbt-redshift
 
 COPY dbt/spotifyredshift /usr/local/airflow/dbt/spotifyredshift
 
+ENV DBT_LOG_FORMAT=text
+ENV DBT_NO_WRITE_JSON=true
+ENV DBT_LOG_PATH=-
+
 WORKDIR /usr/local/airflow
 COPY dbt-requirements.txt ./
 RUN python -m virtualenv dbt_venv && source dbt_venv/bin/activate && \
     pip install --no-cache-dir -r dbt-requirements.txt && deactivate
-
-
